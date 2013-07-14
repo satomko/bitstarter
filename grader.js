@@ -26,8 +26,11 @@ References:
 var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
+var rest = require('restler');
+var sys = require('util');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKFILE_DEFAULT = 'checks.json';
+var URL_DEFAULT = 'http://limitless-coast-7651.herokuapp.com/';
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -37,6 +40,17 @@ var assertFileExists = function(infile) {
     }
     return instr;
 };
+
+
+var assertURLExists = function(url) {
+    var result = rest.get(url);
+    if (result instanceof Error) {
+            console.log('Error:  ' + result.message);
+            process.exit(1);
+    }
+    return result;
+};
+
 
 var cheerioHtmlFile = function(htmlfile) {
     return cheerio.load(fs.readFileSync(htmlfile));
@@ -71,6 +85,7 @@ if (require.main == module) {
     program
         .option('-c, --checks <check_files>', 'Path to checks.json', clone(assertFileExists), CHECKFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
+        .option('-u, --url <url>', 'Path to URL', clone(assertURLExists), URL_DEFAULT)
         .parse(process.argv);
     var checkJson = checkHtmlFile(program.file, program.checks);
     var outJson = JSON.stringify(checkJson, null, 4);
